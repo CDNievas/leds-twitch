@@ -1,0 +1,3 @@
+python-dotenv
+openrgb-python
+python-socketio[client]
