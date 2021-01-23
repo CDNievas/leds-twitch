@@ -1,26 +1,31 @@
 import socketio
 import OpenRGB, Led
 
-sio = socketio.Client()
+EventosIO = socketio.Client()
 
-def connect(IP,PORT):
-    sio.connect("http://localhost:5000")
-    print('Sucessfully connected to WS Server')
+from IO.Chat import sio as ChatIO
 
-@sio.on("handshake")
+def connect(ip,port):
+    EventosIO.connect("http://{}:{}".format(ip,port))
+    print('Conectado a EventosTwitch Server por IO')
+
+@EventosIO.on("handshake")
 def handshake(data):
-    sio.emit("handshake","leds")
+    EventosIO.emit("handshake","leds")
 
-@sio.event
+@EventosIO.event
 def disconnect():
-    print("I'm disconnected!")
+    print("Desconectado de EventosTwitch")
 
-@sio.on('message')
+@EventosIO.on('command')
 def message(data):
 
+    idRedemption = data["idRedemption"]
     color = data["color"]
     username = data["user"]
+    idReward = data["idReward"]
 
+    statusOk = True
     msg = "Color cambiado a {} por @{}".format(color,username)
 
     if color == "rojo":
@@ -48,6 +53,12 @@ def message(data):
         OpenRGB.changeKeyboardColor(OpenRGB.Color.ORANGE)
         Led.changeLedsColor(Led.Color.ORANGE)
     else:
-        msg = "El color que elegiste no existe. Colores disponibles: rojo, azul, verde, amarillo, violeta, rosa, naranja y celeste"
+        msg = "@{}, el color que elegiste no existe. Se te han devuelto los puntos".format(username)
+        statusOk = False
+ 
+    ChatIO.emit('response', msg)
 
-    sio.emit('response', msg)
+    if(statusOk):
+        EventosIO.emit("success",{"idRedemption":idRedemption, "idReward":idReward})
+    else:
+        EventosIO.emit("error",{"idRedemption":idRedemption, "idReward":idReward})

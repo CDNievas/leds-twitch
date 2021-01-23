@@ -1,7 +1,10 @@
 import sys, os, socketio
 from dotenv import load_dotenv
 
-import OpenRGB, Led, WS
+import OpenRGB, Led, IO
+
+from IO.Chat import connect as connectChat
+from IO.Eventos import connect as connectEventos
 
 load_dotenv()
 
@@ -11,28 +14,37 @@ PORT_OPENRGB = int(os.getenv('PORT_OPENRGB'))
 IP_LED = os.getenv('IP_LED')
 PORT_LED = int(os.getenv('PORT_LED'))
 
-IP_WS = os.getenv("IP_WS")
-PORT_WS = os.getenv("PORT_WS")
+IP_EVENTOS = os.getenv("IP_EVENTOS")
+PORT_EVENTOS = os.getenv("PORT_EVENTOS")
+
+IP_CHAT = os.getenv("IP_CHAT")
+PORT_CHAT = os.getenv("PORT_CHAT")
 
 try:
-    WS.connect(IP_WS,PORT_WS)
+    connectChat(IP_CHAT,PORT_CHAT)
 except Exception as e:
-    print("Can't connect to WS Server.", e)
+    print("No se pudo conectar a ChatTwitch Server por IO", e)
     sys.exit(-1)
 
 try:
+    connectEventos(IP_EVENTOS,PORT_EVENTOS)
+except Exception as e:
+    print("No se pudo conectar a EventosTwitch Server por IO", e)
+    sys.exit(-1)
+
+
+
+try:
     OpenRGB.connect(IP_OPENRGB,PORT_OPENRGB)
-    print("Sucessfully connected to OpenRGB Server")
+    print("Conectado a OpenRGB Server")
 except OSError:
-    print("Can't connect to OpenRGB Server at {}:{}".format(IP_OPENRGB,PORT_OPENRGB))
+    print("No se pudo conectar a OpenRGB Server")
     sys.exit(-2)
 
 try:
     Led.connect(IP_LED,PORT_LED)
-    print("Sucessfully connected to Led Server")
+    print("Conectado a Led Server")
 except OSError:
-    print("Can't connect to Led Server at {}:{}".format(IP_LED,PORT_LED))
+    print("No se pudo conectar a Led Server")
     sys.exit(-3)
-
-
 
